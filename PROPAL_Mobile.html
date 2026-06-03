@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>PRO'PAL — Le retour des PRO'S</title>
+<meta name="description" content="Outil conseiller SG Auvergne Rhône Alpes — Génération de propositions commerciales Professionnels"/>
+<meta name="theme-color" content="#E2001A"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="PRO'PAL"/>
+<!-- Polices système — aucune dépendance réseau -->
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --rouge:#E2001A;--rouge-h:#C8001A;--rouge-light:#FFF5F6;
+  --noir:#1A1A1A;--gris1:#3A3A3A;--gris2:#5E5E5E;--gris3:#9A9A9A;
+  --border:#D8D5D0;--fond:#F4F2EE;--blanc:#FFFFFF;
+  --r:12px;--r-sm:8px;
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+}
+
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  background:var(--fond);color:var(--noir);font-size:16px;
+  display:flex;flex-direction:column;
+}
+
+/* ── TOP BAR ── */
+.topbar{background:var(--rouge);height:3px;flex-shrink:0}
+
+/* ── HEADER ── */
+.header{
+  background:var(--blanc);border-bottom:1px solid var(--border);
+  padding:12px 16px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+}
+.header-left{display:flex;flex-direction:column}
+.propal-name{font-size:18px;font-weight:700;color:var(--noir);letter-spacing:-.4px;line-height:1}
+.propal-name span{color:var(--rouge)}
+.propal-sub{font-size:10px;font-weight:600;color:var(--gris3);letter-spacing:.5px;text-transform:uppercase;margin-top:2px}
+/* SG AuRA logo compact */
+.sg-aura{display:flex;align-items:center;gap:7px}
+.sg-aura-mark{display:flex;flex-direction:column;gap:2px}
+.sg-aura-mark div{width:20px;height:9px;border-radius:1px}
+.sg-aura-text{font-size:9px;font-weight:700;color:var(--noir);line-height:1.3;letter-spacing:.2px}
+
+/* ── PROGRESS STEPS ── */
+.steps-bar{
+  background:var(--blanc);border-bottom:1px solid var(--border);
+  padding:10px 16px;flex-shrink:0;
+  display:flex;align-items:center;gap:0;
+}
+.step-item{display:flex;align-items:center;flex:1}
+.step-circle{
+  width:28px;height:28px;border-radius:50%;border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;color:var(--gris3);
+  flex-shrink:0;transition:all .25s;background:var(--blanc);
+}
+.step-item.active .step-circle{border-color:var(--rouge);background:var(--rouge);color:#fff}
+.step-item.done .step-circle{border-color:var(--rouge);background:var(--rouge-light);color:var(--rouge)}
+.step-item.done .step-circle::after{content:'✓';font-size:12px}
+.step-item.done .step-circle span{display:none}
+.step-label{font-size:11px;font-weight:600;color:var(--gris3);margin-left:6px;white-space:nowrap}
+.step-item.active .step-label{color:var(--rouge)}
+.step-item.done .step-label{color:var(--gris2)}
+.step-line{flex:1;height:2px;background:var(--border);margin:0 6px;border-radius:2px;transition:background .25s}
+.step-item.done + .step-line,
+.step-item.active + .step-line{background:var(--rouge)}
+
+/* ── SCROLL ZONE ── */
+.scroll-zone{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:0 0 120px 0;
+}
+
+/* ── SCREENS ── */
+.screen{display:none;padding:16px}
+.screen.active{display:block}
+
+/* ── CARD ── */
+.card{background:var(--blanc);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:12px;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.card-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gris3);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── FIELDS ── */
+.field{margin-bottom:14px}
+.field:last-child{margin-bottom:0}
+.field label{display:block;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gris2);margin-bottom:6px}
+.field-opt{font-size:10px;font-weight:400;color:var(--gris3);text-transform:none;letter-spacing:0;margin-left:3px}
+.field input,.field select{
+  width:100%;font-family:inherit;font-size:16px;
+  padding:13px 14px;border:1.5px solid var(--border);border-radius:var(--r-sm);
+  background:#FAFAF9;color:var(--noir);outline:none;
+  transition:border-color .15s,box-shadow .15s;
+  -webkit-appearance:none;appearance:none;
+}
+.field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239A9A9A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;
+}
+.field input:focus,.field select:focus{border-color:var(--rouge);box-shadow:0 0 0 3px rgba(226,0,26,.1);background:var(--blanc)}
+.field input::placeholder{color:#C0BDBA;font-size:15px}
+
+/* ── OFFRES ── */
+.cat-section{margin-bottom:20px}
+.cat-section:last-child{margin-bottom:0}
+.cat-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.cat-name{font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--rouge)}
+.cat-line{flex:1;height:1px;background:var(--border)}
+.cat-badge{background:var(--rouge);color:#fff;font-size:10px;font-weight:700;padding:1px 8px;border-radius:10px;display:none}
+.cat-badge.on{display:inline-block}
+
+/* BIG TOUCH CHIPS */
+.chip-list{display:flex;flex-direction:column;gap:10px}
+.chip{
+  background:var(--blanc);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:14px 14px 12px;cursor:pointer;transition:all .15s;
+  display:flex;flex-direction:column;gap:4px;
+  position:relative;overflow:hidden;
+}
+.chip::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent;transition:background .15s;border-radius:3px 0 0 3px}
+.chip.on{background:var(--rouge-light);border-color:var(--rouge)}
+.chip.on::before{background:var(--rouge)}
+.chip-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.chip-name{font-size:15px;font-weight:700;color:var(--noir);line-height:1.3}
+.chip.on .chip-name{color:var(--rouge)}
+.chip-check{
+  width:24px;height:24px;border-radius:6px;border:1.5px solid var(--border);
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;transition:all .15s;
+}
+.chip.on .chip-check{background:var(--rouge);border-color:var(--rouge);color:#fff}
+.chip.on .chip-check::after{content:'✓'}
+.chip-price{font-size:12px;color:var(--gris3);font-weight:400}
+.chip.on .chip-price{color:#b00015}
+.chip-pitch{font-size:13px;color:var(--gris2);line-height:1.5;margin-top:4px;display:none}
+.chip.on .chip-pitch{display:block;color:var(--gris1)}
+.chip-avantage{font-size:12.5px;color:#1A6B2E;font-weight:600;background:#F0FAF3;border-radius:6px;padding:7px 10px;margin-top:6px;line-height:1.45;display:none}
+.chip.on .chip-avantage{display:block}
+
+/* TOTAL PILL */
+.total-pill{
+  background:var(--rouge-light);border:1px solid rgba(226,0,26,.2);
+  border-radius:20px;padding:8px 16px;
+  display:none;align-items:center;justify-content:space-between;
+  margin-bottom:4px;
+}
+.total-pill.on{display:flex}
+.total-pill span{font-size:13px;color:var(--gris2)}
+.total-pill strong{font-size:14px;font-weight:700;color:var(--rouge)}
+
+/* ── APERÇU ── */
+.output-format-toggle{display:flex;gap:8px;margin-bottom:14px}
+.fmt-btn{
+  flex:1;padding:11px;border-radius:var(--r-sm);border:1.5px solid var(--border);
+  background:var(--blanc);font-family:inherit;font-size:13px;font-weight:600;
+  color:var(--gris2);cursor:pointer;transition:all .15s;text-align:center;
+}
+.fmt-btn.active{background:var(--noir);border-color:var(--noir);color:#fff}
+
+.letter-preview{
+  background:var(--blanc);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px;font-size:13px;line-height:1.85;white-space:pre-wrap;
+  color:var(--noir);max-height:55vh;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.email-preview{
+  background:var(--blanc);border:1px solid var(--border);border-radius:var(--r);
+  padding:0;max-height:55vh;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* ── BOTTOM CTA BAR ── */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--blanc);border-top:1px solid var(--border);
+  padding:12px 16px calc(12px + var(--safe-bottom));
+  display:flex;gap:10px;align-items:center;
+  box-shadow:0 -4px 16px rgba(0,0,0,.08);
+  z-index:100;
+}
+.btn-back{
+  width:48px;height:48px;border-radius:var(--r-sm);border:1.5px solid var(--border);
+  background:var(--blanc);font-size:18px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  color:var(--gris2);transition:all .15s;
+}
+.btn-back:active{background:var(--fond)}
+.btn-next{
+  flex:1;height:48px;border-radius:var(--r-sm);border:none;
+  background:var(--rouge);color:#fff;font-family:inherit;
+  font-size:16px;font-weight:700;cursor:pointer;
+  transition:background .15s,transform .1s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-next:active{transform:scale(.97)}
+.btn-next:disabled{background:#CCC;cursor:not-allowed;transform:none}
+.btn-copy{
+  flex:1;height:48px;border-radius:var(--r-sm);border:none;
+  background:var(--noir);color:#fff;font-family:inherit;
+  font-size:15px;font-weight:700;cursor:pointer;
+  transition:background .15s,transform .1s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-copy:active{transform:scale(.97)}
+.btn-copy.ok{background:#1A6B2E}
+.btn-share{
+  width:48px;height:48px;border-radius:var(--r-sm);border:1.5px solid var(--border);
+  background:var(--blanc);font-size:20px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .15s;
+}
+.btn-share:active{background:var(--fond)}
+
+/* ── STEP INDICATOR LABEL ── */
+.step-context{padding:10px 16px 0;font-size:12px;color:var(--gris3);font-weight:400}
+.step-context strong{color:var(--rouge);font-weight:700}
+
+/* ── RECAP CHIPS ── */
+.recap-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.recap-chip{background:var(--rouge-light);color:var(--rouge);border:1px solid rgba(226,0,26,.2);font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px}
+
+/* ── EMPTY STATE ── */
+.empty-hint{text-align:center;padding:40px 20px;color:var(--gris3)}
+.empty-hint div{font-size:32px;margin-bottom:10px;opacity:.4}
+.empty-hint p{font-size:13px;line-height:1.6}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);
+  background:var(--noir);color:#fff;font-size:13px;font-weight:600;
+  padding:10px 20px;border-radius:20px;white-space:nowrap;
+  opacity:0;transition:all .2s;pointer-events:none;z-index:999;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="topbar"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="propal-name">PRO<span>'</span>PAL</div>
+    <div class="propal-sub">Le retour des PRO'S</div>
+  </div>
+  <div class="sg-aura">
+    <div style="font-size:16px;font-weight:700;color:var(--noir);letter-spacing:-.2px">SG</div>
+    <div class="sg-aura-mark">
+      <div style="background:#E2001A"></div>
+      <div style="background:#1A1A1A"></div>
+    </div>
+    <div class="sg-aura-text">AUVERGNE<br>RHÔNE ALPES</div>
+  </div>
+</div>
+
+<!-- STEPS BAR -->
+<div class="steps-bar">
+  <div class="step-item active" id="si1">
+    <div class="step-circle"><span>1</span></div>
+    <div class="step-label">Client</div>
+  </div>
+  <div class="step-line" id="sl1"></div>
+  <div class="step-item" id="si2">
+    <div class="step-circle"><span>2</span></div>
+    <div class="step-label">Offres</div>
+  </div>
+  <div class="step-line" id="sl2"></div>
+  <div class="step-item" id="si3">
+    <div class="step-circle"><span>3</span></div>
+    <div class="step-label">Courrier</div>
+  </div>
+</div>
+
+<!-- SCROLL ZONE -->
+<div class="scroll-zone" id="scrollZone">
+
+  <!-- ══ ÉTAPE 1 : CLIENT ══ -->
+  <div class="screen active" id="screen1">
+    <div class="step-context">Étape <strong>1 sur 3</strong> — Informations client</div>
+    <div style="height:12px"></div>
+    <div class="card">
+      <div class="card-title">Dirigeant & entreprise</div>
+      <div class="field">
+        <label>Nom du dirigeant</label>
+        <input id="nom" type="text" placeholder="Nom complet" autocomplete="off" inputmode="text"/>
+      </div>
+      <div class="field">
+        <label>Entreprise</label>
+        <input id="societe" type="text" placeholder="Raison sociale" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Conseiller & contexte</div>
+      <div class="field">
+        <label>Votre nom</label>
+        <input id="conseiller" type="text" placeholder="Votre nom (conseiller SG)" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label>Secteur d'activité <span class="field-opt">optionnel</span></label>
+        <select id="secteur">
+          <option value="">— Tous secteurs —</option>
+          <option value="BTP">🏗 BTP / Construction</option>
+          <option value="Santé">⚕️ Santé / Médical</option>
+          <option value="Commerce">🛒 Commerce / Distribution</option>
+          <option value="Restauration">🍽 Restauration / Hôtellerie</option>
+          <option value="Transport">🚚 Transport / Logistique</option>
+          <option value="Industrie">🏭 Industrie / Fabrication</option>
+          <option value="Services">💼 Services aux entreprises</option>
+          <option value="Libéral">📋 Professions libérales</option>
+          <option value="Agriculture">🌾 Agriculture</option>
+          <option value="Immobilier">🏠 Immobilier</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ÉTAPE 2 : OFFRES ══ -->
+  <div class="screen" id="screen2">
+    <div class="step-context">Étape <strong>2 sur 3</strong> — Sélectionnez les offres</div>
+    <div style="height:10px"></div>
+    <div class="total-pill" id="totalPill">
+      <span>Solutions sélectionnées</span>
+      <strong id="totalCount">0 offre</strong>
+    </div>
+    <div id="offres"></div>
+  </div>
+
+  <!-- ══ ÉTAPE 3 : APERÇU ══ -->
+  <div class="screen" id="screen3">
+    <div class="step-context">Étape <strong>3 sur 3</strong> — Aperçu &amp; copie</div>
+    <div style="height:12px"></div>
+
+    <div class="output-format-toggle">
+      <button class="fmt-btn active" onclick="setFmt('text',this)">✉ Courrier texte</button>
+      <button class="fmt-btn" onclick="setFmt('email',this)">📧 Email HTML</button>
+    </div>
+
+    <!-- Recap offres -->
+    <div id="recapZone" style="margin-bottom:12px"></div>
+
+    <!-- Preview -->
+    <div id="outputZone"></div>
+
+    <div style="font-size:11px;color:var(--gris3);margin-top:10px;line-height:1.5;font-style:italic" id="tarifNotice"></div>
+  </div>
+
+</div><!-- /scroll-zone -->
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar" id="bottomBar">
+  <!-- Step 1 -->
+  <button class="btn-next" id="btn1" onclick="goTo(2)">
+    Choisir les offres <span>→</span>
+  </button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const OFFRES = {
+  "Banque au quotidien": [
+    {id:"jazz_pro", nom:"Jazz Pro", tarif:"42 € HT/mois",
+     avantage:"Économie potentielle jusqu'à 88 € HT/mois de services regroupés pour 42 € HT/mois — cotisation déductible du résultat imposable.",
+     pitch:"Pack tout-en-un : tenue de compte, virements illimités, Progéliance Net 24h/24 et L'Appli SG PRO inclus.",
+     tarif_lettre:"Cotisation mensuelle : 42 € HT/mois — inclut Progéliance Net, L'Appli SG PRO et 6 services bancaires clés. Valeur unitaire équivalente : environ 88 € HT/mois. Réduction croisée : 33,60 € HT/mois si vous détenez également JAZZ ou Sobrio à titre privé (−20 %)."},
+    {id:"progeliance", nom:"Progéliance Net", tarif:"25 € HT/mois (inclus Jazz Pro)",
+     avantage:"Inclus dans Jazz Pro sans surcoût : accès illimité 24h/24 à votre compte, sans déplacement.",
+     pitch:"Banque en ligne 24h/24 depuis ordinateur ou mobile. Inclus dans Jazz Pro.",
+     tarif_lettre:"Cotisation : 25 € HT/mois — inclus sans surcoût dans Jazz Pro. Tarif au 01/01/2026."},
+    {id:"vizup", nom:"Vizup", tarif:"Inclus Progéliance Net",
+     avantage:"Plateforme agréée pour la facturation électronique obligatoire dès septembre 2026 — incluse sans frais.",
+     pitch:"Tableau de bord, facturation en ligne, préparation à l'obligation électronique 2026. Inclus dans Progéliance Net.",
+     tarif_lettre:"Inclus sans frais dans Progéliance Net. Anticipez la facturation électronique obligatoire dès septembre 2026."},
+  ],
+  "Monétique": [
+    {id:"tpe", nom:"Monétia · TPE fixe", tarif:"−25 % avec Jazz Pro",
+     avantage:"Réduction de 25 % sur la location du TPE pour tout client Jazz Pro — maintenance et assistance incluses.",
+     pitch:"Encaissement par carte, sans contact, remise rapide. Maintenance et assistance incluses. −25 % avec Jazz Pro.",
+     tarif_lettre:"Location Monétia : réduction de 25 % pour les clients Jazz Pro. Maintenance et assistance téléphonique incluses."},
+    {id:"tpe_mobile", nom:"TPE Mobile", tarif:"Nous consulter",
+     avantage:"Aucune infrastructure fixe requise : encaissez depuis votre smartphone, où que vous soyez.",
+     pitch:"Encaissement depuis smartphone pour professionnels itinérants (chantier, livraison, déplacement).",
+     tarif_lettre:"Tarification sur devis selon le modèle retenu."},
+    {id:"carte_visa", nom:"CB Visa Business", tarif:"−25 % avec Jazz Pro",
+     avantage:"−25 % sur la cotisation annuelle avec Jazz Pro + jusqu'à −25 % supplémentaire si vos dépenses annuelles atteignent 7 500 €.",
+     pitch:"Carte pro : plafond jusqu'à 15 300 €/mois, sans contact, assurances voyages incluses.",
+     tarif_lettre:"Cotisation annuelle réduite de 25 % pour les clients Jazz Pro. Double avantage fidélité : −25 % supplémentaire si dépenses ≥ 7 500 €/an."},
+    {id:"carte_gold", nom:"CB Visa Gold Business", tarif:"−25 % avec Jazz Pro",
+     avantage:"−25 % avec Jazz Pro + jusqu'à −35 % supplémentaire si vos dépenses annuelles atteignent 15 000 €.",
+     pitch:"Carte haut de gamme, plafonds élevés, assurances renforcées pour déplacements professionnels.",
+     tarif_lettre:"Cotisation annuelle réduite de 25 % pour les clients Jazz Pro. Double avantage fidélité : −35 % supplémentaire si dépenses ≥ 15 000 €/an."},
+    {id:"carte_flux", nom:"Carte de flux", tarif:"Sur devis",
+     avantage:"Suppression des notes de frais : dépenses collaborateurs centralisées, plafonnées et traçables en temps réel.",
+     pitch:"Cartes paramétrables pour collaborateurs : plafonds, catégories autorisées, reporting centralisé.",
+     tarif_lettre:"Tarification sur devis selon le nombre de porteurs et le volume d'utilisation."},
+  ],
+  "Assurances & Protection": [
+    {id:"genecle", nom:"Génécle (Homme Clé)", tarif:"Sur devis",
+     avantage:"Le capital versé en cas de disparition d'un collaborateur stratégique finance le recrutement ou la réorganisation sans déstabiliser la trésorerie.",
+     pitch:"Capital versé à l'entreprise en cas de décès ou d'invalidité d'une personne clé, pour assurer la continuité.",
+     tarif_lettre:"Cotisation calculée selon le profil, le capital assuré et la nature de l'entreprise. Devis en agence."},
+    {id:"genepro", nom:"Génépro (Prévoyance)", tarif:"Sur devis",
+     avantage:"Maintenez votre revenu en cas d'arrêt de travail — protection essentielle pour tout dirigeant non salarié.",
+     pitch:"Protégez votre revenu en cas d'arrêt maladie, d'invalidité ou de décès.",
+     tarif_lettre:"Cotisation selon revenu à protéger, âge et niveau de couverture souhaité."},
+    {id:"multirisque", nom:"Multirisque des Pros", tarif:"Sur devis",
+     avantage:"La garantie perte d'exploitation vous permet de continuer à percevoir un revenu pendant l'interruption forcée de votre activité.",
+     pitch:"Locaux, matériel, RC professionnelle, perte d'exploitation couverts contre incendie, vol, dégâts des eaux.",
+     tarif_lettre:"Prime selon la nature de l'activité, la valeur des biens et les garanties choisies."},
+    {id:"prot_juri", nom:"Protection Juridique", tarif:"Sur devis",
+     avantage:"Frais d'avocat et de procédure pris en charge — défendez vos droits sans supporter seul les coûts.",
+     pitch:"Assistance juridique et prise en charge des frais en cas de litige commercial, fiscal ou social.",
+     tarif_lettre:"Cotisation annuelle selon le niveau de couverture. Devis disponible en agence."},
+    {id:"resp_dirig", nom:"Resp. des Dirigeants", tarif:"Sur devis",
+     avantage:"Votre patrimoine personnel reste protégé face aux recours de tiers, même en cas de mise en cause de votre gestion.",
+     pitch:"Protège le patrimoine personnel du dirigeant contre les recours d'actionnaires, salariés ou tiers.",
+     tarif_lettre:"Prime selon la structure juridique et le niveau de couverture souhaité."},
+    {id:"sante_coll", nom:"Santé Collective", tarif:"Sur devis",
+     avantage:"Obligation légale transformée en avantage : levier de fidélisation des collaborateurs à coût maîtrisé.",
+     pitch:"Complémentaire santé pour vos salariés : obligation légale, tarifs négociés, gestion simplifiée.",
+     tarif_lettre:"Cotisation selon l'effectif, le niveau de remboursement et la composition familiale moyenne."},
+  ],
+  "Financement": [
+    {id:"decouvert", nom:"Découvert autorisé", tarif:"Taux négociable",
+     avantage:"Négociée en amont, cette facilité évite les frais d'incident (17 €/opération hors convention) et sécurise vos paiements.",
+     pitch:"Facilité de caisse pour les décalages de trésorerie ponctuels. Négociée à l'avance, taux adapté.",
+     tarif_lettre:"Commission d'intervention : 11 €/opération avec Convention de Trésorerie Courante (17 € hors convention). Taux selon profil financier. Tarif au 01/01/2026."},
+    {id:"cmlt", nom:"Crédit MLT", tarif:"Taux selon durée/profil",
+     avantage:"Préservez votre trésorerie courante en étalant le financement sur la durée de vie de l'actif, sans ponctionner votre fonds de roulement.",
+     pitch:"Finance travaux, équipements, véhicules sur la durée. Taux et échéances adaptés à votre capacité.",
+     tarif_lettre:"Taux fixe ou variable selon durée et montant. Simulation disponible en agence."},
+    {id:"credit_bail", nom:"Crédit-Bail", tarif:"Loyers déductibles",
+     avantage:"Loyers intégralement déductibles du résultat imposable — réduction de charge fiscale tout en préservant la trésorerie.",
+     pitch:"Utilisez matériel et véhicules sans les acheter : loyers déductibles, option d'achat en fin de contrat.",
+     tarif_lettre:"Loyers calculés sur la valeur du bien, la durée et l'option d'achat résiduelle. Avantage fiscal : loyers déductibles du résultat imposable."},
+    {id:"tresorerie", nom:"Fin. de trésorerie", tarif:"Taux selon ligne",
+     avantage:"Ligne de crédit immédiatement disponible pour saisir une opportunité commerciale ou honorer une commande sans attendre les règlements clients.",
+     pitch:"Ligne de crédit court terme pour sécuriser le cash-flow en période de forte activité ou délais clients.",
+     tarif_lettre:"Taux et commission d'engagement selon la ligne autorisée. Conditions à négocier en agence."},
+  ],
+};
+
+const ICONS={"Banque au quotidien":"🏦","Monétique":"💳","Assurances & Protection":"🛡","Financement":"📈"};
+const sel=new Set();
+const catCounts={};
+let currentStep=1;
+let currentFmt='text';
+
+// ─── BUILD OFFRES ─────────────────────────────────────────────────────────────
+const container=document.getElementById("offres");
+Object.entries(OFFRES).forEach(([cat,offres])=>{
+  catCounts[cat]=0;
+  const sec=document.createElement("div");sec.className="cat-section";
+  const hdr=document.createElement("div");hdr.className="cat-header";
+  hdr.innerHTML=`<div class="cat-name">${ICONS[cat]||''} ${cat}</div><div class="cat-line"></div><div class="cat-badge" id="cb-${cat.replace(/\W/g,'_')}">0</div>`;
+  sec.appendChild(hdr);
+  const list=document.createElement("div");list.className="chip-list";
+  offres.forEach(o=>{
+    const c=document.createElement("div");c.className="chip";
+    c.innerHTML=`
+      <div class="chip-top">
+        <div class="chip-name">${o.nom}</div>
+        <div class="chip-check"></div>
+      </div>
+      <div class="chip-price">${o.tarif}</div>
+      <div class="chip-pitch">${o.pitch}</div>
+      <div class="chip-avantage">✦ ${o.avantage}</div>
+    `;
+    c.onclick=()=>{
+      if(sel.has(o.id)){sel.delete(o.id);c.classList.remove("on");catCounts[cat]--;}
+      else{sel.add(o.id);c.classList.add("on");catCounts[cat]++;}
+      const cb=document.getElementById("cb-"+cat.replace(/\W/g,'_'));
+      if(catCounts[cat]>0){cb.textContent=catCounts[cat];cb.classList.add("on");}
+      else cb.classList.remove("on");
+      updateTotalPill();
+      updateNav();
+    };
+    list.appendChild(c);
+  });
+  sec.appendChild(list);
+  container.appendChild(sec);
+});
+
+function updateTotalPill(){
+  const pill=document.getElementById("totalPill");
+  const tc=document.getElementById("totalCount");
+  if(sel.size>0){
+    pill.classList.add("on");
+    tc.textContent=sel.size+(sel.size>1?" offres":" offre");
+  } else pill.classList.remove("on");
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────────────────────────
+function goTo(step){
+  // validate step 1
+  if(step===2){
+    const nom=document.getElementById("nom").value.trim();
+    const soc=document.getElementById("societe").value.trim();
+    if(!nom&&!soc){showToast("Renseignez au moins le nom ou l'entreprise");return;}
+  }
+  if(step===3){
+    if(sel.size===0){showToast("Sélectionnez au moins une offre");return;}
+    buildPreview();
+  }
+  // hide all screens
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.getElementById("screen"+step).classList.add("active");
+  document.getElementById("scrollZone").scrollTop=0;
+  currentStep=step;
+  updateStepsBar();
+  updateNav();
+}
+
+function updateStepsBar(){
+  [1,2,3].forEach(i=>{
+    const si=document.getElementById("si"+i);
+    si.className="step-item"+(i===currentStep?" active":i<currentStep?" done":"");
+  });
+  [1,2].forEach(i=>{
+    const sl=document.getElementById("sl"+i);
+    sl.style.background=i<currentStep?"var(--rouge)":"var(--border)";
+  });
+}
+
+function updateNav(){
+  const bar=document.getElementById("bottomBar");
+  const nom=document.getElementById("nom").value.trim();
+  const soc=document.getElementById("societe").value.trim();
+
+  if(currentStep===1){
+    bar.innerHTML=`<button class="btn-next" id="btn1" onclick="goTo(2)" ${(!nom&&!soc)?'disabled':''}>Choisir les offres <span>→</span></button>`;
+  } else if(currentStep===2){
+    bar.innerHTML=`
+      <button class="btn-back" onclick="goTo(1)">←</button>
+      <button class="btn-next" onclick="goTo(3)" ${sel.size===0?'disabled':''}>Générer le courrier <span>→</span></button>
+    `;
+  } else if(currentStep===3){
+    bar.innerHTML=`
+      <button class="btn-back" onclick="goTo(2)">←</button>
+      <button class="btn-copy" id="copyBtn" onclick="copier()">⎘ Copier</button>
+    `;
+  }
+}
+
+["nom","societe","conseiller"].forEach(id=>{
+  document.getElementById(id).addEventListener("input",updateNav);
+});
+
+// ─── FORMAT TOGGLE ────────────────────────────────────────────────────────────
+function setFmt(fmt,btn){
+  currentFmt=fmt;
+  document.querySelectorAll(".fmt-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  buildPreview();
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────────────
+function buildLetterData(){
+  const nom=document.getElementById("nom").value.trim();
+  const societe=document.getElementById("societe").value.trim();
+  const conseiller=document.getElementById("conseiller").value.trim()||"Votre Conseiller Professionnels";
+  const secteur=document.getElementById("secteur").value;
+  const date=new Date().toLocaleDateString("fr-FR",{day:"numeric",month:"long",year:"numeric"});
+  const allFlat=Object.values(OFFRES).flat();
+  const chosen=allFlat.filter(o=>sel.has(o.id));
+  const secteurPhrase=secteur?` Compte tenu des spécificités du secteur ${secteur}, les solutions ci-dessous ont été sélectionnées pour répondre au mieux à votre contexte.`:"";
+  return{nom,societe,conseiller,secteur,date,chosen,secteurPhrase};
+}
+
+function buildPreview(){
+  const d=buildLetterData();
+  const zone=document.getElementById("outputZone");
+
+  // recap
+  const recapZone=document.getElementById("recapZone");
+  recapZone.innerHTML=`<div class="recap-chips">${d.chosen.map(o=>`<span class="recap-chip">${o.nom}</span>`).join("")}</div>`;
+
+  if(currentFmt==='text'){
+    const txt=renderPlainText(d);
+    zone.innerHTML=`<div class="letter-preview" id="letterEl"></div>`;
+    document.getElementById("letterEl").textContent=txt;
+  } else {
+    zone.innerHTML=`<div class="email-preview" id="emailEl"></div>`;
+    document.getElementById("emailEl").innerHTML=renderEmailHTML(d);
+  }
+
+  // tarif notice
+  const hasSurDevis=d.chosen.some(o=>o.tarif&&o.tarif.includes("devis"));
+  document.getElementById("tarifNotice").textContent=hasSurDevis
+    ?"* Tarifs HT au 01/01/2026. Offres « sur devis » établies selon votre profil. Source : Brochure SG Pro 2026."
+    :"Tarifs HT au 01/01/2026 — Brochure tarifaire SG Professionnels 2026.";
+}
+
+function renderPlainText(d){
+  const intro=`Paris, le ${d.date}\n\nObjet : Proposition personnalisée de services — Société Générale Professionnels\n\n${d.nom?"Madame, Monsieur "+d.nom+",":"Madame, Monsieur,"}${d.societe?"\nDirigeant(e) de "+d.societe+",":""}\n\nSuite à notre récent entretien, j'ai le plaisir de vous adresser une proposition personnalisée.${d.secteurPhrase} En tant que votre conseiller dédié au marché des Professionnels à la Société Générale, je suis votre interlocuteur unique pour l'ensemble des solutions présentées ci-dessous.`;
+  const corps=d.chosen.map(o=>`▸ ${o.nom.toUpperCase()}\n${o.pitch}\n${o.tarif_lettre}\nAvantage : ${o.avantage}`).join("\n\n");
+  const fin=`Pour aller plus loin, je suis à votre disposition pour un rendez-vous en agence ou dans vos locaux. Retrouvez nos offres sur professionnels.sg.fr.\n\nDans cette attente, je vous adresse mes cordiales salutations.\n\n${d.conseiller}\nConseiller Professionnels — Société Générale · Auvergne Rhône Alpes`;
+  return intro+"\n\n"+corps+"\n\n"+fin;
+}
+
+function renderEmailHTML(d){
+  const rows=d.chosen.map(o=>`
+    <tr><td style="padding:12px 0;border-bottom:1px solid #E8E6E2;vertical-align:top">
+      <div style="font-size:13px;font-weight:700;color:#1A1A1A;margin-bottom:3px">▸ ${o.nom.toUpperCase()}</div>
+      <div style="font-size:12px;color:#3A3A3A;line-height:1.65;margin-bottom:5px">${o.pitch}</div>
+      <div style="font-size:11px;color:#6B6B6B;margin-bottom:5px;font-style:italic">${o.tarif_lettre}</div>
+      <div style="font-size:12px;color:#1A6B2E;background:#F0FAF3;border-left:3px solid #1A6B2E;padding:6px 10px;border-radius:0 3px 3px 0"><strong>Avantage :</strong> ${o.avantage}</div>
+    </td></tr>`).join('');
+  return `<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#1A1A1A;font-size:13px">
+  <div style="background:#1A1A1A;padding:14px 18px;display:flex;justify-content:space-between;align-items:center">
+    <div style="color:#fff;font-size:17px;font-weight:700">PRO<span style="color:#E2001A">'</span>PAL</div>
+    <div style="color:rgba(255,255,255,.6);font-size:10px;text-align:right">SG · AuRA</div>
+  </div>
+  <div style="height:3px;background:#E2001A"></div>
+  <div style="padding:20px 18px;background:#fff">
+    <p style="color:#5E5E5E;font-size:12px;margin-bottom:5px">Paris, le ${d.date}</p>
+    <p style="font-weight:700;font-size:13px;margin-bottom:16px">Objet : Proposition personnalisée — Société Générale Professionnels</p>
+    <p style="margin-bottom:6px">${d.nom?"Madame, Monsieur <strong>"+d.nom+"</strong>,":"Madame, Monsieur,"}</p>
+    ${d.societe?`<p style="color:#5E5E5E;font-size:12px;margin-bottom:14px">Dirigeant(e) de <strong>${d.societe}</strong></p>`:""}
+    <p style="line-height:1.7;margin-bottom:18px">Suite à notre récent entretien, j'ai le plaisir de vous adresser une proposition personnalisée.${d.secteur?` Compte tenu des spécificités du secteur <strong>${d.secteur}</strong>, les solutions ci-dessous ont été retenues pour vous.`:""}</p>
+    <table style="width:100%;border-collapse:collapse">${rows}</table>
+    <p style="margin-top:20px;line-height:1.7">Pour aller plus loin, je suis disponible pour un rendez-vous en agence ou dans vos locaux. Retrouvez nos offres sur <a href="https://professionnels.sg.fr" style="color:#E2001A">professionnels.sg.fr</a>.</p>
+    <p style="margin-top:14px;font-weight:700">${d.conseiller}</p>
+    <p style="color:#9A9A9A;font-size:12px">Conseiller Professionnels — SG Auvergne Rhône Alpes</p>
+  </div>
+  <div style="background:#F4F2EE;padding:10px 18px;border-top:1px solid #D8D5D0">
+    <p style="font-size:10px;color:#9A9A9A;font-style:italic">Tarifs HT au 01/01/2026 — Brochure tarifaire SG Professionnels 2026 — professionnels.sg.fr</p>
+  </div></div>`;
+}
+
+// ─── COPY (bulletproof) ───────────────────────────────────────────────────────
+function copier(){
+  const btn=document.getElementById("copyBtn");
+  let texte="",el=null;
+  if(currentFmt==='text'){
+    el=document.getElementById("letterEl");
+    texte=el?.textContent||"";
+  } else {
+    el=document.getElementById("emailEl");
+    texte=el?.innerHTML||"";
+  }
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(texte).then(()=>flashCopied(btn)).catch(()=>fallbackCopy(texte,el,btn));
+  } else {
+    fallbackCopy(texte,el,btn);
+  }
+}
+function fallbackCopy(texte,el,btn){
+  try{
+    const ta=document.createElement("textarea");
+    ta.value=texte;
+    ta.style.cssText="position:fixed;top:0;left:0;width:2px;height:2px;opacity:0";
+    document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,99999);
+    const ok=document.execCommand("copy");
+    document.body.removeChild(ta);
+    if(ok){flashCopied(btn);return;}
+  }catch(e){}
+  // Sélection visuelle
+  if(el){
+    try{
+      const range=document.createRange();range.selectNodeContents(el);
+      const s=window.getSelection();s.removeAllRanges();s.addRange(range);
+      btn.textContent="✓ Sélectionné — Ctrl+C";btn.classList.add("ok");
+      setTimeout(()=>{btn.textContent="⎘ Copier";btn.classList.remove("ok");window.getSelection().removeAllRanges();},3000);
+    }catch(e){showToast("Sélectionnez le texte manuellement");}
+  }
+}
+function flashCopied(btn){
+  btn.textContent="✓ Copié !";btn.classList.add("ok");
+  showToast("Texte copié — collez dans votre email !");
+  setTimeout(()=>{btn.textContent="⎘ Copier";btn.classList.remove("ok");},2500);
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2200);
+}
+
+// Init
+updateNav();
+</script>
+</body>
+</html>
